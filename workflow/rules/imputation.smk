@@ -10,7 +10,7 @@ rule remove_outliers:
 
 rule prepare_dataset_for_imputation:
     input:
-        dataset=rules.remove_outliers.output.dataset
+        dataset=rules.remove_outliers.output.dataset,
     output:
         data_metadata="data/imputation/input/data_metadata.tsv",
         chemical_annotation="data/imputation/input/chemical_annotation.tsv",
