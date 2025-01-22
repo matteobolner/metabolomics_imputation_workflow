@@ -40,7 +40,7 @@ rule impute:
     conda:
         "../envs/imputation.yaml"
     shell:
-        "Rscript {input.script} -d {input.data} -c {input.chemical_annotation} -o {output.imputed} -s {wildcards.mice_seed} -m pmm -n 5 -r 0.25 -u 5 -a {params.covariates} --metabolite_id_column {params.metabolite_id_column} --super_pathway_column {params.super_pathway_column}"
+        """Rscript {input.script} -d {input.data} -c {input.chemical_annotation} -o {output.imputed} -s {wildcards.mice_seed} -m pmm -n 5 -r 0.25 -u 5 -a {params.covariates} --metabolite_id_column "{params.metabolite_id_column}" --super_pathway_column "{params.super_pathway_column}""""
 
 
 rule split_imputed_datasets:
