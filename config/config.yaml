@@ -1,0 +1,13 @@
+#DATASET
+raw_dataset: "resources/test_dataset_fecal.xlsx"
+sample_id_column: "SAMPLE NAME"
+metabolite_id_column: "CHEMICAL ID"
+sample_metadata_sheet: "Sample Meta Data"
+chemical_annotation_sheet: "Chemical Annotation"
+data_sheet: "Data"
+
+#IMPUTATION:
+mice_imputation_covariates: ['AGE','BREED','GENDER']
+mice_seeds: [1000,2000,3000,4000,5000]
+imputation_cycles: [1,2,3,4,5]
+super_pathway_column: "SUPER PATHWAY"
