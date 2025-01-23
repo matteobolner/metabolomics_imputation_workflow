@@ -7,6 +7,7 @@ chemical_annotation_sheet: "Chemical Annotation"
 data_sheet: "Data"
 
 #IMPUTATION:
+imputation_prefix: ""
 mice_imputation_covariates: ['AGE','BREED','GENDER']
 mice_seeds: [1000,2000,3000,4000,5000]
 imputation_cycles: [1,2,3,4,5]

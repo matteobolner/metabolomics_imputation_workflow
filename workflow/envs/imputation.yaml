@@ -2,7 +2,7 @@ channels:
  - r
 dependencies:
  - r
- - r-mice
+ - r-mice==3.17.0
  - r-readxl
  - r-dplyr
  - r-tidyr

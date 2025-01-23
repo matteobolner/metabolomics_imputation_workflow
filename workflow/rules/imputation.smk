@@ -2,19 +2,19 @@ rule remove_outliers:
     input:
         dataset=config["raw_dataset"],
     output:
-        missing_removed="data/initial_stats/missing_removed.tsv",
-        dataset="data/imputation/input/clean_raw_dataset.xlsx",
+        missing_removed="data/imputation{imputation_prefix}/missing_removed.tsv",
+        dataset="data/imputation{imputation_prefix}/input/clean_raw_dataset.xlsx",
     script:
         "../scripts/outliers/remove_outliers.py"
 
 
 rule prepare_dataset_for_imputation:
     input:
-        dataset="data/imputation/input/clean_raw_dataset.xlsx",
+        dataset=rules.remove_outliers.output.dataset,
     output:
-        data_metadata="data/imputation/input/data_metadata.tsv",
-        chemical_annotation="data/imputation/input/chemical_annotation.tsv",
-        sample_metadata="data/imputation/input/samples.tsv",
+        data_metadata="data/imputation{imputation_prefix}/input/data_metadata.tsv",
+        chemical_annotation="data/imputation{imputation_prefix}/input/chemical_annotation.tsv",
+        sample_metadata="data/imputation{imputation_prefix}/input/samples.tsv",
     script:
         "../scripts/imputation/prepare_data_for_imputation.py"
 
@@ -32,7 +32,7 @@ rule impute:
         chemical_annotation=rules.prepare_dataset_for_imputation.output.chemical_annotation,
         script=rules.download_imputation_script.output.script,
     output:
-        imputed="data/imputation/imputed/{mice_seed}.tsv",
+        imputed="data/imputation{imputation_prefix}/imputed/{mice_seed}.tsv",
     params:
         covariates=get_mice_covariates(),
         metabolite_id_column=config["metabolite_id_column"],
@@ -40,7 +40,7 @@ rule impute:
     conda:
         "../envs/imputation.yaml"
     shell:
-        """Rscript {input.script} -d {input.data} -c {input.chemical_annotation} -o {output.imputed} -s {wildcards.mice_seed} -m pmm -n 5 -r 0.25 -u 5 -a {params.covariates} --metabolite_id_column "{params.metabolite_id_column}" --super_pathway_column "{params.super_pathway_column}""""
+        """Rscript {input.script} -d {input.data} -c {input.chemical_annotation} -o {output.imputed} -s {wildcards.mice_seed} -m pmm -n 5 -r 0.25 -u 5 -a {params.covariates} --metabolite_id_column "{params.metabolite_id_column}" --super_pathway_column "{params.super_pathway_column}" """
 
 
 rule split_imputed_datasets:
@@ -50,7 +50,7 @@ rule split_imputed_datasets:
         chemical_annotation=rules.prepare_dataset_for_imputation.output.chemical_annotation,
     output:
         imputations=expand(
-            "data/imputation/imputed/seed_{{mice_seed}}/imputation_{imputation_cycle}.xlsx",
+            "data/imputation{{imputation_prefix}}/imputed/seed_{{mice_seed}}/imputation_{imputation_cycle}.xlsx",
             imputation_cycle=[i for i in imputation_cycles],
         ),
     run:
