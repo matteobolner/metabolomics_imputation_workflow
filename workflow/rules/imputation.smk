@@ -22,7 +22,7 @@ rule remove_outliers_and_missing:
         missing_removed="data/imputation/{group}/missing_removed.tsv",
         dataset="data/imputation/{group}/input/clean_raw_dataset.xlsx",
     script:
-        "../scripts/outliers/remove_outliers_and_missing.py"
+        "../scripts/remove_outliers_and_missing.py"
 
 
 rule prepare_dataset_for_imputation:
@@ -33,7 +33,7 @@ rule prepare_dataset_for_imputation:
         chemical_annotation="data/imputation/{group}/input/chemical_annotation.tsv",
         sample_metadata="data/imputation/{group}/input/samples.tsv",
     script:
-        "../scripts/imputation/prepare_data_for_imputation.py"
+        "../scripts/prepare_data_for_imputation.py"
 
 
 rule download_imputation_script:
