@@ -1,20 +1,37 @@
-rule remove_outliers:
+rule split_subsets_for_imputation:
     input:
         dataset=config["raw_dataset"],
     output:
-        missing_removed="data/imputation{imputation_prefix}/missing_removed.tsv",
-        dataset="data/imputation{imputation_prefix}/input/clean_raw_dataset.xlsx",
+        group="data/imputation/{group}/input/raw_dataset.xlsx",
+    run:
+        dataset = setup_dataset(input.dataset)
+        if config["impute_groups_separately"] == False:
+            dataset.io.save_excel(output.group)
+        else:
+            dataset_subset = dataset.ops.split(
+                by="samples", columns=config["imputation_group_column"]
+            )[wildcards.group]
+            print(dataset_subset.samples)
+            dataset_subset.io.save_excel(output.group)
+
+
+rule remove_outliers_and_missing:
+    input:
+        dataset=rules.split_subsets_for_imputation.output.group,
+    output:
+        missing_removed="data/imputation/{group}/missing_removed.tsv",
+        dataset="data/imputation/{group}/input/clean_raw_dataset.xlsx",
     script:
-        "../scripts/outliers/remove_outliers.py"
+        "../scripts/outliers/remove_outliers_and_missing.py"
 
 
 rule prepare_dataset_for_imputation:
     input:
-        dataset=rules.remove_outliers.output.dataset,
+        dataset=rules.remove_outliers_and_missing.output.dataset,
     output:
-        data_metadata="data/imputation{imputation_prefix}/input/data_metadata.tsv",
-        chemical_annotation="data/imputation{imputation_prefix}/input/chemical_annotation.tsv",
-        sample_metadata="data/imputation{imputation_prefix}/input/samples.tsv",
+        data_metadata="data/imputation/{group}/input/data_metadata.tsv",
+        chemical_annotation="data/imputation/{group}/input/chemical_annotation.tsv",
+        sample_metadata="data/imputation/{group}/input/samples.tsv",
     script:
         "../scripts/imputation/prepare_data_for_imputation.py"
 
@@ -32,7 +49,7 @@ rule impute:
         chemical_annotation=rules.prepare_dataset_for_imputation.output.chemical_annotation,
         script=rules.download_imputation_script.output.script,
     output:
-        imputed="data/imputation{imputation_prefix}/imputed/{mice_seed}.tsv",
+        imputed="data/imputation/{group}/imputed/{mice_seed}.tsv",
     params:
         covariates=get_mice_covariates(),
         metabolite_id_column=config["metabolite_id_column"],
@@ -50,7 +67,7 @@ rule split_imputed_datasets:
         chemical_annotation=rules.prepare_dataset_for_imputation.output.chemical_annotation,
     output:
         imputations=expand(
-            "data/imputation{{imputation_prefix}}/imputed/seed_{{mice_seed}}/imputation_{imputation_cycle}.xlsx",
+            "data/imputation/{{group}}/imputed/seed_{{mice_seed}}/imputation_{imputation_cycle}.xlsx",
             imputation_cycle=[i for i in imputation_cycles],
         ),
     run:
@@ -71,3 +88,48 @@ rule split_imputed_datasets:
                 metabolite_id_column=config["metabolite_id_column"],
             )
             dataset.io.save_excel(outputs[name])
+
+
+if config["impute_groups_separately"]:
+
+    rule merge_imputations:
+        input:
+            whole_raw_dataset=config["raw_dataset"],
+            groups=expand(
+                "data/imputation/{group}/imputed/seed_{{mice_seed}}/imputation_{{imputation_cycle}}.xlsx",
+                group=config["imputation_groups"],
+            ),
+        output:
+            merged="data/imputation/imputed/seed_{mice_seed}/imputation_{imputation_cycle}.xlsx",
+        run:
+            whole_raw_dataset = setup_dataset(input.whole_raw_dataset)
+            merged_data = []
+            merged_sample_annotation = []
+            merged_chemical_annotation = whole_raw_dataset.chemical_annotation
+            for i in input.groups:
+                tempsubset = setup_dataset(i)
+                merged_data.append(tempsubset.data)
+                merged_sample_annotation.append(tempsubset.sample_metadata)
+            merged_data = pd.concat(merged_data)
+            merged_sample_metadata = pd.concat(merged_sample_annotation)
+            merged_dataset = MetaboTK().io.from_tables(
+                data=merged_data,
+                sample_metadata=merged_sample_metadata,
+                chemical_annotation=merged_chemical_annotation,
+                sample_id_column=whole_raw_dataset._sample_id_column,
+                metabolite_id_column=whole_raw_dataset._metabolite_id_column,
+            )
+            merged_dataset.io.save_excel(output.merged)
+
+else:
+
+    rule get_imputations:
+        input:
+            dataset=expand(
+                "data/imputation/{group}/imputed/seed_{{mice_seed}}/imputation_{{imputation_cycle}}.xlsx",
+                group="whole",
+            ),
+        output:
+            dataset="data/imputation/imputed/seed_{mice_seed}/imputation_{imputation_cycle}.xlsx",
+        shell:
+            "cp {input.dataset} {output.dataset}"

@@ -7,6 +7,9 @@ chemical_annotation_sheet: "Chemical Annotation"
 data_sheet: "Data"
 
 #IMPUTATION:
+impute_groups_separately: True #write False to avoid separate imputation
+imputation_group_column: "GENDER" #only relevant if impute_groups_separately is True
+imputation_groups: ['M','G'] #only relevant if impute_groups_separately is True
 mice_imputation_covariates: ['AGE','BREED','GENDER']
 mice_seeds: [1000,2000,3000,4000,5000]
 imputation_cycles: [1,2,3,4,5]
