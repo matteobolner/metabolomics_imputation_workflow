@@ -38,7 +38,7 @@ rule prepare_dataset_for_imputation:
 
 rule download_imputation_script:
     output:
-        script="workflow/scripts/imputation/metabolomics_missing_data_imputation/impute.R",
+        script="workflow/scripts/impute.R",
     shell:
         "curl https://raw.githubusercontent.com/matteobolner/metabolomics_missing_data_imputation/refs/heads/main/impute.R -o {output.script}"
 
