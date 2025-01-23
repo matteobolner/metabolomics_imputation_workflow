@@ -5,7 +5,7 @@ include: "rules/imputation.smk"
 rule imputation_workflow:
     input:
         expand(
-            "data/imputation{imputation_prefix}/imputed/seed_{mice_seed}/imputation_{imputation_cycle}.xlsx",
+            "data/imputation{{imputation_prefix}}/imputed/seed_{mice_seed}/imputation_{imputation_cycle}.xlsx",
             mice_seed=[i for i in mice_seeds],
             imputation_cycle=[i for i in imputation_cycles],
         ),
