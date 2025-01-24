@@ -92,7 +92,7 @@ rule split_imputed_datasets:
 
 if config["impute_groups_separately"]:
 
-    rule merge_imputations:
+    rule get_imputations:
         input:
             whole_raw_dataset=config["raw_dataset"],
             groups=expand(
