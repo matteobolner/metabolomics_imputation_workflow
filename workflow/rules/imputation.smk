@@ -100,7 +100,7 @@ if config["impute_groups_separately"]:
                 group=config["imputation_groups"],
             ),
         output:
-            merged="data/imputation/imputed/seed_{mice_seed}/imputation_{imputation_cycle}.xlsx",
+            dataset="data/imputation/imputed/seed_{mice_seed}/imputation_{imputation_cycle}.xlsx",
         run:
             whole_raw_dataset = setup_dataset(input.whole_raw_dataset)
             merged_data = []
@@ -119,7 +119,8 @@ if config["impute_groups_separately"]:
                 sample_id_column=whole_raw_dataset._sample_id_column,
                 metabolite_id_column=whole_raw_dataset._metabolite_id_column,
             )
-            merged_dataset.io.save_excel(output.merged)
+            merged_dataset.io.save_excel(output.dataset)
+
 
 else:
 
