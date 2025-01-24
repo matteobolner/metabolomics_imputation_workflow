@@ -1,6 +1,6 @@
 rule split_subsets_for_imputation:
     input:
-        dataset=config["raw_dataset"],
+        dataset={input}
     output:
         group="data/imputation/{group}/input/raw_dataset.xlsx",
     run:
