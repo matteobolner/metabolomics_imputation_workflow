@@ -27,4 +27,5 @@ imputation_cycles = config["imputation_cycles"]
 
 wildcard_constraints:
     mice_seed="[^_]+",
-    prefix=".*",
+    imputation_cycle="[^_/]+",
+
